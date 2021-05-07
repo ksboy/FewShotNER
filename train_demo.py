@@ -21,6 +21,8 @@ def main():
             help='test file')
     parser.add_argument('--trainN', default=2, type=int,
             help='N in train')
+    parser.add_argument('--evalN', default=2, type=int,
+            help='N in eval')
     parser.add_argument('--N', default=2, type=int,
             help='N way')
     parser.add_argument('--K', default=2, type=int,
@@ -79,6 +81,7 @@ def main():
 
     opt = parser.parse_args()
     trainN = opt.trainN
+    evalN = opt.evalN
     N = opt.N
     K = opt.K
     Q = opt.Q
@@ -98,7 +101,7 @@ def main():
     train_data_loader = get_loader(opt.train, word_encoder,
             N=trainN, K=K, Q=Q, batch_size=batch_size, max_length=max_length)
     val_data_loader = get_loader(opt.val, word_encoder,
-            N=N, K=K, Q=Q, batch_size=batch_size, max_length=max_length)
+            N=evalN, K=K, Q=Q, batch_size=batch_size, max_length=max_length)
     test_data_loader = get_loader(opt.test, word_encoder,
             N=N, K=K, Q=Q, batch_size=batch_size, max_length=max_length)
 
@@ -137,7 +140,7 @@ def main():
         if opt.lr == -1:
             opt.lr = 2e-5
 
-        framework.train(model, prefix, batch_size, trainN, N, K, Q,
+        framework.train(model, prefix, batch_size, trainN, evalN, K, Q,
                 load_ckpt=opt.load_ckpt, save_ckpt=ckpt,
                 val_step=opt.val_step, fp16=opt.fp16,
                 train_iter=opt.train_iter, warmup_step=int(opt.train_iter * 0.1), val_iter=opt.val_iter, learning_rate=opt.lr, use_sgd_for_bert=opt.use_sgd_for_bert)

@@ -239,9 +239,10 @@ class FewShotNERFramework:
         self.test_data_loader = test_data_loader
         self.adv_data_loader = adv_data_loader
         self.viterbi = viterbi
+        self.tau = tau
         if viterbi:
-            abstract_transitions = get_abstract_transitions(train_fname)
-            self.viterbi_decoder = ViterbiDecoder(N+2, abstract_transitions, tau)
+            self.abstract_transitions = get_abstract_transitions(train_fname)
+            # self.viterbi_decoder = ViterbiDecoder(N+2, abstract_transitions, tau)
     
     def __load_model__(self, ckpt):
         '''
@@ -286,7 +287,8 @@ class FewShotNERFramework:
               fp16=False,
               adv_dis_lr=1e-1,
               adv_enc_lr=1e-1,
-              use_sgd_for_bert=False):
+              use_sgd_for_bert=False,
+              early_stop=3):
         '''
         model: a FewShotREModel instance
         model_name: Name of the model
@@ -349,6 +351,7 @@ class FewShotNERFramework:
         iter_precision = 0.0
         iter_recall = 0.0
         iter_f1 = 0.0
+        patience = 0
         for it in range(start_iter, start_iter + train_iter):
             support, query = next(self.train_data_loader)
             if torch.cuda.is_available():
@@ -395,6 +398,13 @@ class FewShotNERFramework:
                     print('Best checkpoint')
                     torch.save({'state_dict': model.state_dict()}, save_ckpt)
                     best_f1 = f1
+                    patience = 0
+                else:
+                    patience += 1
+                    if patience > early_stop:
+                        print("Out of patience !  Stop Training !")
+                        break # return
+                        
                 iter_loss = 0.
                 iter_loss_dis = 0.
                 iter_right = 0.
@@ -477,6 +487,8 @@ class FewShotNERFramework:
         iter_fn = 0.0 # misclassify I- as O
         iter_within = 0.0 # span correct but of wrong fine-grained type 
         iter_outer = 0.0 # span correct but of wrong coarse-grained type
+
+        self.viterbi_decoder = ViterbiDecoder(N+2, self.abstract_transitions, self.tau)
         with torch.no_grad():
             for it in range(eval_iter):
                 support, query = next(eval_dataset)
