@@ -1,8 +1,8 @@
 # CUDA_VISIBLE_DEVICES=1 python -m debugpy --listen 0.0.0.0:8888 --wait-for-client train_demo.py \
 CUDA_VISIBLE_DEVICES=0 nohup python -u train_demo.py  \
 --model structshot \
---train data/structdata/train.txt \
---val data/structdata/dev.txt \
+--train data/structdata/ontonotes-5.0/train.txt \
+--val data/structdata/ontonotes-5.0/dev.txt \
 --test data/structdata/test-wnut.txt \
 --lr 2e-5 --batch_size 1 \
 --trainN 4 --evalN 4 --N 6 --K 5 --Q 5 \

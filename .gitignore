@@ -6,3 +6,5 @@ checkpoint
 apex
 *.slurm
 trainlog
+
+cached*
