@@ -19,6 +19,14 @@ def main():
             help='val file')
     parser.add_argument('--test', default='data/mydata/test-inter.txt',
             help='test file')
+    parser.add_argument('--test_support', default='data/mydata/test-inter.txt',
+            help='test file')
+    parser.add_argument('--test_query', default='data/mydata/test-inter.txt',
+            help='test file')
+    parser.add_argument('--query_fixed', action='store_true',
+            help='donnot sample query')
+    parser.add_argument('--support_fixed', action='store_true',
+            help='donnot sample support')
     parser.add_argument('--trainN', default=2, type=int,
             help='N in train')
     parser.add_argument('--evalN', default=2, type=int,
@@ -61,6 +69,8 @@ def main():
            help='only test')
     parser.add_argument('--ckpt_name', type=str, default='',
            help='checkpoint name.')
+    parser.add_argument("--output_dir", type=str, default='',
+        help="The output directory where the model predictions and checkpoints will be written.")
 
 
     # only for bert / roberta
@@ -98,12 +108,14 @@ def main():
             pretrain_ckpt,
             max_length)
 
-    train_data_loader = get_loader(opt.train, word_encoder,
+    train_data_loader = get_loader(filepath=opt.train, encoder=word_encoder,
             N=trainN, K=K, Q=Q, batch_size=batch_size, max_length=max_length)
-    val_data_loader = get_loader(opt.val, word_encoder,
+    val_data_loader = get_loader(filepath=opt.val, encoder=word_encoder,
             N=evalN, K=K, Q=Q, batch_size=batch_size, max_length=max_length)
-    test_data_loader = get_loader(opt.test, word_encoder,
-            N=N, K=K, Q=Q, batch_size=batch_size, max_length=max_length)
+    test_data_loader = get_loader(filepath=opt.test, encoder=word_encoder,
+            supportfilepath=opt.test_support, queryfilepath=opt.test_query,
+            N=N, K=K, Q=Q, batch_size=batch_size, max_length=max_length,
+            query_fixed=opt.query_fixed, support_fixed=opt.support_fixed)
 
         
     prefix = '-'.join([model_name, opt.train.split('/')[-1], opt.val.split('/')[-1], str(N), str(K)])
@@ -126,9 +138,9 @@ def main():
         framework = FewShotNERFramework(train_data_loader, val_data_loader, test_data_loader, N=opt.N, tau=opt.tau, train_fname=opt.train, viterbi=True)
     else:
         raise NotImplementedError
-    if not os.path.exists('checkpoint'):
+    if not os.path.exists(opt.output_dir):
         os.mkdir('checkpoint')
-    ckpt = 'checkpoint/{}.pth.tar'.format(prefix)
+    ckpt = os.path.join(opt.output_dir, '{}.pth.tar'.format(prefix))
     if opt.save_ckpt:
         ckpt = opt.save_ckpt
     print('model-save-path:', ckpt)
