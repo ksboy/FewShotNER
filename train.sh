@@ -13,6 +13,7 @@ CUDA_VISIBLE_DEVICES=0 nohup python -u train_demo.py  \
 --test data/structdata/wnut/test.txt \
 --test_support data/structdata/support-wnut-5shot/0.txt \
 --test_query data/structdata/wnut/test.txt \
+--support_fixed \
 --lr 2e-5 --batch_size 1 \
 --trainN 4 --evalN 4 --N 6 --K 5 --Q 5 \
 --fp16 \
