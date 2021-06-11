@@ -242,6 +242,7 @@ class FewShotNERFramework:
         self.tau = tau
         if viterbi:
             self.abstract_transitions = get_abstract_transitions(train_fname)
+            # evalN 和testN 分离
             # self.viterbi_decoder = ViterbiDecoder(N+2, abstract_transitions, tau)
     
     def __load_model__(self, ckpt):
@@ -390,6 +391,7 @@ class FewShotNERFramework:
                     .format(it + 1, iter_loss / iter_sample, 100 * iter_right / iter_sample, \
                                         iter_precision / iter_sample, iter_recall / iter_sample, iter_f1 / iter_sample) + '\r')
             sys.stdout.flush()
+            torch.cuda.empty_cache()
 
             if (it + 1) % val_step == 0:
                 _, _, f1, _, _, _, _ = self.eval(model, B, N_for_eval, K, Q, val_iter)
@@ -472,7 +474,9 @@ class FewShotNERFramework:
                 state_dict = self.__load_model__(ckpt)['state_dict']
                 own_state = model.state_dict()
                 for name, param in state_dict.items():
+                    name = name.replace('model', 'word_encoder.module')
                     if name not in own_state:
+                        print("name not in own_state")
                         continue
                     own_state[name].copy_(param)
             eval_dataset = self.test_data_loader
@@ -488,7 +492,8 @@ class FewShotNERFramework:
         iter_within = 0.0 # span correct but of wrong fine-grained type 
         iter_outer = 0.0 # span correct but of wrong coarse-grained type
 
-        self.viterbi_decoder = ViterbiDecoder(N+2, self.abstract_transitions, self.tau)
+        if self.viterbi: 
+            self.viterbi_decoder = ViterbiDecoder(N+2, self.abstract_transitions, self.tau)
         with torch.no_grad():
             for it in range(eval_iter):
                 support, query = next(eval_dataset)

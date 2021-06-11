@@ -1,4 +1,5 @@
 CUDA_VISIBLE_DEVICES=0 nohup python -u train_demo.py  \
+--only_test \
 --train data/structdata/train.txt \
 --val data/structdata/dev.txt \
 --test data/structdata/support-wnut-5shot/0.txt \

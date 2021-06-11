@@ -90,6 +90,7 @@ def main():
            help='use SGD instead of AdamW for BERT.')
 
     opt = parser.parse_args()
+    print(opt)
     trainN = opt.trainN
     evalN = opt.evalN
     N = opt.N
@@ -98,6 +99,8 @@ def main():
     batch_size = opt.batch_size
     model_name = opt.model
     max_length = opt.max_length
+
+    if opt.query_fixed: opt.test_iter = 1
     
     print("{}-way-{}-shot Few-Shot NER".format(N, K))
     print("model: {}".format(model_name))
